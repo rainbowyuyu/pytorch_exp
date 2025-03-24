@@ -24,9 +24,9 @@ transform = transforms.Compose([
     transforms.Normalize((0.5,), (0.5,))
 ])
 
-train_data = datasets.FashionMNIST(root='./data', train=True, transform=transform, download=True)
+train_data = datasets.FashionMNIST(root='../../datasets', train=True, transform=transform, download=True)
 train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True)
-test_data = datasets.FashionMNIST(root='./data', train=False, transform=transform)
+test_data = datasets.FashionMNIST(root='../../datasets', train=False, transform=transform)
 test_loader = DataLoader(test_data, batch_size=batch_size, shuffle=False)
 
 
