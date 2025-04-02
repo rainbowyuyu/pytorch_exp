@@ -12,3 +12,4 @@ pypinyin
 jieba
 python-docx
 pyinstaller
+tqdm

@@ -1,4 +1,4 @@
-#rainbow_yu exp2 🐋✨
+# rainbow_yu exp2 🐋✨
 
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
