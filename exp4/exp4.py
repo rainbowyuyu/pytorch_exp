@@ -5,7 +5,6 @@ import os
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -15,6 +14,14 @@ from time import time
 from tqdm import tqdm
 from sklearn.metrics import confusion_matrix
 import pandas as pd
+
+from pretrained_models import (
+    My_CNN,
+    Better_CNN,
+    CustomVGGNet,
+    CustomResNet,
+    CustomAlexNet,
+)
 
 # 数据集路径
 file_path = r"E:\python_project\datasets\cats_and_dogs\PetImages"
@@ -36,84 +43,16 @@ batch_size = 64
 train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True, pin_memory=True, num_workers=4)
 test_loader = DataLoader(test_data, batch_size=batch_size, shuffle=False, num_workers=4)
 
-
-# 定义 CNN 网络
-class My_CNN(nn.Module):
-    def __init__(self):
-        super(My_CNN, self).__init__()
-        self.layer1 = nn.Sequential(
-            nn.Conv2d(3, 16, kernel_size=3, padding=0, stride=2),
-            nn.BatchNorm2d(16),
-            nn.ReLU(),
-            nn.MaxPool2d(2)
-        )
-        self.layer2 = nn.Sequential(
-            nn.Conv2d(16, 32, kernel_size=3, padding=0, stride=2),
-            nn.BatchNorm2d(32),
-            nn.ReLU(),
-            nn.MaxPool2d(2)
-        )
-        self.layer3 = nn.Sequential(
-            nn.Conv2d(32, 64, kernel_size=3, padding=0, stride=2),
-            nn.BatchNorm2d(64),
-            nn.ReLU(),
-            nn.MaxPool2d(2)
-        )
-        self.fc1 = nn.Linear(64, 10)
-        self.dropout = nn.Dropout(0.5)
-        self.fc2 = nn.Linear(10, 2)
-        self.relu = nn.ReLU()
-
-    def forward(self, x):
-        x = self.layer1(x)
-        x = self.layer2(x)
-        x = self.layer3(x)
-        x = x.view(x.size(0), -1)
-        x = self.relu(self.fc1(x))
-        x = self.dropout(x)
-        x = self.fc2(x)
-        return x
-
-class Better_CNN(nn.Module):
-    def __init__(self):
-        super(Better_CNN, self).__init__()
-        self.conv1 = nn.Conv2d(3, 32, kernel_size=5, stride=1, padding=2)
-        self.bn1 = nn.BatchNorm2d(32)
-        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1)
-        self.bn2 = nn.BatchNorm2d(64)
-        self.conv3 = nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1)
-        self.bn3 = nn.BatchNorm2d(128)
-
-        self.fc1 = nn.Linear(128 * 16 * 16, 512)
-        self.fc2 = nn.Linear(512, 2)
-
-    def forward(self, x):
-        x = F.relu(self.bn1(self.conv1(x)))  # [32, 128, 128]
-        x = F.max_pool2d(x, 2, 2)  # [32, 64, 64]
-
-        x = F.relu(self.bn2(self.conv2(x)))  # [64, 64, 64]
-        x = F.max_pool2d(x, 2, 2)  # [64, 32, 32]
-
-        x = F.relu(self.bn3(self.conv3(x)))  # [128, 32, 32]
-        x = F.max_pool2d(x, 2, 2)  # [128, 16, 16]
-
-        x = x.view(x.size(0), -1)  # 展平成 [batch_size, 128, 16, 16]
-        x = F.relu(self.fc1(x))
-        x = self.fc2(x)
-        return x  # 直接输出 logits（不用 softmax）
-
-
 # 训练参数
 lr = 1e-4
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-# model = My_CNN().to(device)
-model = Better_CNN().to(device)
+model = CustomAlexNet().to(device)
 optimizer = optim.Adam(model.parameters(), lr=lr)
 loss_fn = nn.CrossEntropyLoss()
-
+model_name = model.__class__.__name__
 
 # 训练函数
-def train(model, device, train_loader, optimizer, epoch, losses):
+def train(model, device, train_loader, optimizer, epoch, losses, accuracies):
     model.train()
     total_loss = 0.0
     correct = 0
@@ -136,6 +75,7 @@ def train(model, device, train_loader, optimizer, epoch, losses):
     acc = correct / num_samples
     avg_loss = total_loss / num_samples
     losses.append(avg_loss)
+    accuracies.append(acc)  # 新增准确率记录
     print(f"Epoch {epoch}: Train Loss = {avg_loss:.4f}, Train Accuracy = {acc:.4f}")
 
 
@@ -172,17 +112,21 @@ def test(model, device, test_loader):
     plt.xlabel('Predicted')
     plt.ylabel('Actual')
     plt.title('Confusion Matrix')
-    plt.savefig('confusion_matrix.png')
+    plt.savefig(f'output/{model_name}_confusion_matrix.png')
     plt.close()
 
 
 # 训练和测试
 num_epochs = 10
-losses = []
+
 if __name__ == "__main__":
     start_time = time()
+    losses = []
+    accuracies = []  # 新增准确率列表
+
     for epoch in range(1, num_epochs + 1):
-        train(model, device, train_loader, optimizer, epoch, losses)
+        train(model, device, train_loader, optimizer, epoch, losses, accuracies)
+
     test(model, device, test_loader)
     end_time = time()
     print(f"Total Training Time: {end_time - start_time:.2f} seconds")
@@ -193,5 +137,14 @@ if __name__ == "__main__":
     plt.ylabel('Loss')
     plt.title('Training Loss Over Epochs')
     plt.grid()
-    plt.savefig('training_loss_curve.png')
+    plt.savefig(f'output/{model_name}_training_loss_curve.png')
+    plt.close()
+
+    # 绘制准确率曲线
+    plt.plot(range(1, num_epochs + 1), accuracies, marker='s', linestyle='-', color='g')
+    plt.xlabel('Epoch')
+    plt.ylabel('Accuracy')
+    plt.title('Training Accuracy Over Epochs')
+    plt.grid()
+    plt.savefig(f'output/{model_name}_training_accuracy_curve.png')
     plt.close()
