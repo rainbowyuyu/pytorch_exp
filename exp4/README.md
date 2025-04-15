@@ -40,7 +40,13 @@ class My_CNN(nn.Module):
         x = self.fc2(x)
         return x
 ```
-> 完成My_CNN的训练，epcho:20，lr:1e-4，batch:64
+> 完成My_CNN的训练，epcho:10，lr:1e-4，batch:64
+
+<p align="center">
+    <img src="exp4%2Foutput%2FMy_CNN_confusion_matrix.png" width="30%"/>
+    <img src="exp4%2Foutput%2FMy_CNN_training_loss_curve.png" width="30%"/>
+    <img src="exp4%2Foutput%2FMy_CNN_training_accuracy_curve.png" width="30%"/>
+</p>
 
 - Better_CNN(自己搭建的模型)
 ```python
@@ -75,6 +81,7 @@ class Better_CNN(nn.Module):
 > 完成Better_CNN的训练，epcho:10，lr:1e-4，batch:64
 
 <p align="center">
-    <img src="exp4%2FBetter_CNN_confusion_matrix.png" width="45%"/>
-    <img src="exp4%2FBetter_CNN_training_loss_curve.png" width="45%"/>
+    <img src="exp4%2Foutput%2FBetter_CNN_confusion_matrix.png" width="30%"/>
+    <img src="exp4%2Foutput%2FBetter_CNN_training_loss_curve.png" width="30%"/>
+    <img src="exp4%2Foutput%2FBetter_CNN_training_accuracy_curve.png" width="30%"/>
 </p>
