@@ -43,9 +43,9 @@ class My_CNN(nn.Module):
 > 完成My_CNN的训练，epcho:10，lr:1e-4，batch:64
 
 <p align="center">
-    <img src="exp4/output/My_CNN_confusion_matrix.png" width="30%"/>
-    <img src="exp4/output/My_CNN_training_loss_curve.png" width="30%"/>
-    <img src="exp4/output/My_CNN_training_accuracy_curve.png" width="30%"/>
+    <img src="output/My_CNN_confusion_matrix.png" width="30%"/>
+    <img src="output/My_CNN_training_loss_curve.png" width="30%"/>
+    <img src="output/My_CNN_training_accuracy_curve.png" width="30%"/>
 </p>
 
 - Better_CNN(自己搭建的模型)
@@ -81,7 +81,130 @@ class Better_CNN(nn.Module):
 > 完成Better_CNN的训练，epcho:10，lr:1e-4，batch:64
 
 <p align="center">
-    <img src="exp4/output/Better_CNN_confusion_matrix.png" width="30%"/>
-    <img src="exp4/output/Better_CNN_training_loss_curve.png" width="30%"/>
-    <img src="exp4/output/Better_CNN_training_accuracy_curve.png" width="30%"/>
+    <img src="output/Better_CNN_confusion_matrix.png" width="30%"/>
+    <img src="output/Better_CNN_training_loss_curve.png" width="30%"/>
+    <img src="output/Better_CNN_training_accuracy_curve.png" width="30%"/>
+</p>
+
+> 选取了三个预训练模型进行对比实验
+- VGG
+```python
+class CustomVGGNet(nn.Module):
+    def __init__(self):
+        super(CustomVGGNet, self).__init__()
+
+        weights = VGG16_Weights.DEFAULT
+        vgg = vgg16(weights=weights)
+        for param in vgg.features.parameters():
+            param.requires_grad = False
+
+        self.vgg = vgg.features
+        self.classifier = nn.Sequential(
+            nn.Linear(8192, 64),
+            nn.ReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(64, 32),
+            nn.ReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(32, 16),
+            nn.ReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(16, 2)  # 移除Softmax
+        )
+
+    def forward(self, x):
+        x = self.vgg(x)
+        x = x.view(x.size(0), -1)
+        x = self.classifier(x)
+        return x
+```
+
+> 完成CustomVGGNet的训练，epcho:10，lr:1e-4，batch:64
+
+<p align="center">
+    <img src="output/CustomVGGNet_confusion_matrix.png" width="30%"/>
+    <img src="output/CustomVGGNet_training_loss_curve.png" width="30%"/>
+    <img src="output/CustomVGGNet_training_accuracy_curve.png" width="30%"/>
+</p>
+
+- AlexNet
+```python
+class CustomAlexNet(nn.Module):
+    def __init__(self):
+        super(CustomAlexNet, self).__init__()
+
+        # 加载预训练权重
+        weights = AlexNet_Weights.DEFAULT
+        alex = alexnet(weights=weights)
+
+        # 冻结特征提取部分参数
+        for param in alex.features.parameters():
+            param.requires_grad = False
+
+        # 替换分类器部分（原来是输出1000类）
+        alex.classifier = nn.Sequential(
+            nn.Dropout(0.5),
+            nn.Linear(256 * 6 * 6, 512),
+            nn.ReLU(inplace=True),
+            nn.Dropout(0.5),
+            nn.Linear(512, 128),
+            nn.ReLU(inplace=True),
+            nn.Linear(128, 2)  # 输出2类：猫和狗
+        )
+
+        self.alexnet = alex
+
+    def forward(self, x):
+        return self.alexnet(x)
+```
+
+> 完成CustomAlexNet的训练，epcho:10，lr:1e-4，batch:64
+
+<p align="center">
+    <img src="output/CustomAlexNet_confusion_matrix.png" width="30%"/>
+    <img src="output/CustomAlexNet_training_loss_curve.png" width="30%"/>
+    <img src="output/CustomAlexNet_training_accuracy_curve.png" width="30%"/>
+</p>
+
+- ResNet
+```python
+class CustomResNet(nn.Module):
+    def __init__(self):
+        super(CustomResNet, self).__init__()
+
+        # 加载预训练的 ResNet18
+        weights = ResNet18_Weights.DEFAULT
+        resnet = resnet18(weights=weights)
+
+        # 冻结除最后一层外的参数
+        for param in resnet.parameters():
+            param.requires_grad = False
+
+        # 解冻最后一层（layer4）和 fc 层用于微调
+        for param in resnet.layer4.parameters():
+            param.requires_grad = True
+        for param in resnet.fc.parameters():
+            param.requires_grad = True
+
+        # 替换分类器
+        in_features = resnet.fc.in_features
+        resnet.fc = nn.Sequential(
+            nn.Linear(in_features, 64),
+            nn.ReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(64, 2)  # 输出为2类：猫和狗
+        )
+
+        self.resnet = resnet
+
+    def forward(self, x):
+        return self.resnet(x)
+```
+
+> 完成CustomResNet的训练，epcho:10，lr:1e-4，batch:64
+
+<p align="center">
+    <img src="output/CustomResNet_confusion_matrix.png" width="30%"/>
+    <img src="output/CustomResNet_training_loss_curve.png" width="30%"/>
+    <img src="output/CustomResNet_training_accuracy_curve.png" width="30%"/>
 </p>
