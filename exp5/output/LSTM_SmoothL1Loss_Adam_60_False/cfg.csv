@@ -1,0 +1,2 @@
+Model Name,Loss Function,Optimizer,Look Back,Dynamic LR
+LSTM,SmoothL1Loss,Adam,60,False

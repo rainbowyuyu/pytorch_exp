@@ -105,17 +105,14 @@ class CustomResNet(nn.Module):
         # 加载预训练的 ResNet18
         weights = ResNet18_Weights.DEFAULT
         resnet = resnet18(weights=weights)
-
         # 冻结除最后一层外的参数
         for param in resnet.parameters():
             param.requires_grad = False
-
         # 解冻最后一层（layer4）和 fc 层用于微调
         for param in resnet.layer4.parameters():
             param.requires_grad = True
         for param in resnet.fc.parameters():
             param.requires_grad = True
-
         # 替换分类器
         in_features = resnet.fc.in_features
         resnet.fc = nn.Sequential(
@@ -124,7 +121,6 @@ class CustomResNet(nn.Module):
             nn.Dropout(0.5),
             nn.Linear(64, 2)  # 输出为2类：猫和狗
         )
-
         self.resnet = resnet
 
     def forward(self, x):

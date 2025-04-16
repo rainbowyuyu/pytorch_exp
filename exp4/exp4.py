@@ -139,7 +139,6 @@ if __name__ == "__main__":
     plt.grid()
     plt.savefig(f'output/{model_name}_training_loss_curve.png')
     plt.close()
-
     # 绘制准确率曲线
     plt.plot(range(1, num_epochs + 1), accuracies, marker='s', linestyle='-', color='g')
     plt.xlabel('Epoch')

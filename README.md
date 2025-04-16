@@ -73,3 +73,11 @@ class LeNet5(nn.Module):
 猫狗实验 Cats and Dogs
 
 > 详细信息见文件内的[README.md](exp4/README.md)
+
+
+---
+
+### [exp5](exp5)
+股票预测 LSTM
+
+> 详细信息见文件内的[README.md](exp5/README.md)
