@@ -1,3 +1,6 @@
+# rainbow_yu exp5 🐋✨
+# 股票预测 LSTM
+
 import torch
 import torch.nn as nn
 import numpy as np
