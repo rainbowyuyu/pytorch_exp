@@ -1,0 +1,2 @@
+Model Name,Loss Function,Optimizer,Look Back,Dynamic LR
+LSTM,MSELoss,Adam,15,False
