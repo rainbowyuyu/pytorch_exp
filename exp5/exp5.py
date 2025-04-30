@@ -49,15 +49,9 @@ def load_data(stock, look_back):
 
 look_back = 60
 [x_train, y_train, x_test, y_test] = load_data(df_ibm, look_back)
-
 model = LSTM(input_dim=1, hidden_dim=32, num_layers=2, output_dim=1)
-# model = RNN(input_dim=1, hidden_dim=32, num_layers=2, output_dim=1)
-
 loss_fn = nn.MSELoss()
-
-# 设置动态学习率
-dynamic_lr = False  # 设置为True以启用动态学习率
-
+dynamic_lr = False
 if dynamic_lr:
     optimiser = torch.optim.Adam(model.parameters(), lr=0.01)  # 初始学习率设为0.01
     scheduler = lr_scheduler.StepLR(optimiser, step_size=10, gamma=0.1)  # 每10个epoch将学习率降低为原来的0.1倍
@@ -71,11 +65,8 @@ opt_name = optimiser.__class__.__name__
 
 folder_name = f'output/{model_name}_{loss_name}_{opt_name}_{look_back}_{dynamic_lr}'
 os.makedirs(folder_name, exist_ok=True)
-
-# 为生成的文件命名
 file_name = f"output/{model_name}_{loss_name}_{opt_name}_{look_back}_{dynamic_lr}/cfg.csv"
 
-# 准备保存的参数数据
 parameters = {
     'Model Name': model_name,
     'Loss Function': loss_name,
@@ -88,7 +79,6 @@ parameters = {
 df_params = pd.DataFrame([parameters])
 df_params.to_csv(file_name, index=False)
 
-# cfg
 num_epochs = 200
 hist = np.zeros(num_epochs)
 
