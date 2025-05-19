@@ -1,4 +1,4 @@
-# rainbow_yu exp5 🐋✨
+# rainbow_yu exp6 🐋✨
 # 基于 Seq2seq 的机器翻译
 
 from __future__ import unicode_literals, print_function, division

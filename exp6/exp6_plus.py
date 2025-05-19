@@ -1,3 +1,6 @@
+# rainbow_yu exp6_plus 🐋✨
+# 基于 Seq2seq 的机器翻译
+
 import torch
 import torch.nn as nn
 from torch import optim
