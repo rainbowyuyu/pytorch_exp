@@ -81,3 +81,7 @@ class LeNet5(nn.Module):
 股票预测 LSTM
 
 > 详细信息见文件内的[README.md](exp5/README.md)
+
+
+### [exp6](exp6)
+Seq 2 Seq

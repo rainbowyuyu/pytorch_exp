@@ -229,7 +229,7 @@ def train(
     return loss.item() / target_length
 
 
-def as_minutes(s)
+def as_minutes(s):
     m = math.floor(s / 60)
     s -= m * 60
     return '%dm %ds' % (m, s)
@@ -253,8 +253,8 @@ def train_iters(encoder, decoder, n_iters, print_every=1000, plot_every=100, lea
     criterion = nn.NLLLoss()
 
     for iter in range(1, n_iters + 1):
-        training_pairs = training_pairs[iter - 1]
-        input_tensor, target_tensor = training_pairs[0], training_pairs[1]
+        training_pair = training_pairs[iter - 1]
+        input_tensor, target_tensor = training_pair[0], training_pair[1]
         loss = train(
             input_tensor,
             target_tensor,
@@ -288,8 +288,103 @@ def show_plot(points):
 
 def evaluate(encoder, decoder, sentence, max_length=MAX_LENGTH):
     with torch.no_grad():
-        input_tensor = tensorFromSentence(input_lang,sentence)
+        input_tensor = tensorFromSentence(input_lang, sentence)
+        input_length = input_tensor.size()[0]
+        encoder_hidden = encoder.initHidden()
 
-if __name__ == "__main__":
-    input_lang, output_lang, pairs = prepare_data('eng', 'fra', True)
-    print(random.choice(pairs))
+        encoder_outputs = torch.zeros(max_length, encoder.hidden_size, device=device)
+
+        for ei in range(input_length):
+            encoder_output, encoder_hidden = encoder(input_tensor[ei],
+                                                     encoder_hidden)
+            encoder_outputs[ei] += encoder_output[0, 0]
+
+        decoder_input = torch.tensor([[SOS_token]], device=device)  # SOS
+
+        decoder_hidden = encoder_hidden
+
+        decoded_words = []
+        decoder_attentions = torch.zeros(max_length, max_length)
+
+        for di in range(max_length):
+            decoder_output, decoder_hidden, decoder_attention = decoder(
+                decoder_input, decoder_hidden, encoder_outputs)
+            decoder_attentions[di] = decoder_attention.data
+            topv, topi = decoder_output.data.topk(1)
+            topi = topi.item()
+            if topi == EOS_token:
+                decoded_words.append('<EOS>')
+                break
+            else:
+                decoded_words.append(output_lang.index2word[topi.item()])
+
+            decoder_input = topi.squeeze().detach()
+
+        return decoded_words, decoder_attentions[:di + 1]
+
+def evaluateRandomly(encoder, decoder, n=10):
+    for i in range(n):
+        pair = random.choice(pairs)
+        print('>', pair[0])
+        print('=', pair[1])
+        output_words, attentions = evaluate(encoder, decoder, pair[0])
+        output_sentence = ' '.join(output_words)
+        print('<', output_sentence)
+        print('')
+
+hidden_size = 256
+encoder1 = EncoderRNN(input_lang.n_words, hidden_size).to(device)
+attn_decoder1 = AttnDecoderRNN(hidden_size, output_lang.n_words, dropout_p=0.1).to(device)
+
+trainIters(encoder1, attn_decoder1, 75000, print_every=5000)
+evaluateRandomly(encoder1, attn_decoder1)
+
+
+
+def indexesFromSentence(lang, sentence):
+    return [lang.word2index[word] for word in sentence.split(' ')] + [EOS_token]
+
+def tensorFromSentence(lang, sentence):
+    indexes = indexesFromSentence(lang, sentence)
+    return torch.tensor(indexes, dtype=torch.long, device=device).view(-1, 1)
+
+def tensorFromPair(pair):
+    input_tensor = tensorFromSentence(input_lang, pair[0])
+    target_tensor = tensorFromSentence(output_lang, pair[1])
+    return (input_tensor, target_tensor)
+
+
+import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
+import torch
+
+def showAttention(input_sentence, output_words, attentions):
+    # Set up figure with colorbar
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    cax = ax.matshow(attentions.numpy(), cmap='bone')
+    fig.colorbar(cax)
+
+    # Set up axes
+    ax.set_xticklabels([''] + input_sentence.split(' ') + ['<EOS>'], rotation=90)
+    ax.set_yticklabels([''] + output_words)
+
+    # Show label at every tick
+    ax.xaxis.set_major_locator(ticker.MultipleLocator(1))
+    ax.yaxis.set_major_locator(ticker.MultipleLocator(1))
+
+    plt.show()
+
+
+def evaluateAndShowAttention(input_sentence):
+    output_words, attentions = evaluate(
+        encoder1, attn_decoder1, input_sentence)
+    print('input =', input_sentence)
+    print('output =', ' '.join(output_words))
+    showAttention(input_sentence, output_words, attentions)
+
+
+evaluateAndShowAttention("elle a cinq ans de moins que moi .")
+evaluateAndShowAttention("elle est trop petit .")
+evaluateAndShowAttention("je ne crains pas de mourir .")
+evaluateAndShowAttention("c est un jeune directeur plein de talent .")
