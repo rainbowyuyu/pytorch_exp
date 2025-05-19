@@ -1,5 +1,5 @@
-torchvision~=0.21.0+cu124
-torch~=2.6.0+cu124
+torchvision
+torch
 numpy
 matplotlib~=3.9
 seaborn~=0.13.2
@@ -13,3 +13,6 @@ jieba
 python-docx
 pyinstaller
 tqdm
+torchtext
+torchdata==0.6.0
+portalocker
