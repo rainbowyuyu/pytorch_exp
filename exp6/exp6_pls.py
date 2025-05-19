@@ -302,12 +302,13 @@ def show_plot(points):
     loc = ticker.MultipleLocator(base=0.2)
     ax.yaxis.set_major_locator(loc)
     plt.plot(points)
-    plt.show()
+    plt.savefig("output/loss")
 
 
 # 评估函数
 def evaluate(encoder, decoder, sentence):
     with torch.no_grad():
+        sentence = normalize_string(sentence)
         input_tensor = tensor_from_sentence(input_lang, sentence)
         input_length = input_tensor.size(0)
         encoder_hidden = encoder.init_hidden()
@@ -354,20 +355,25 @@ def evaluate_randomly(encoder, decoder, n=10):
 
 # 注意力可视化函数
 def show_attention(input_sentence, output_words, attentions):
-    """绘制注意力矩阵"""
     fig = plt.figure()
     ax = fig.add_subplot(111)
     cax = ax.matshow(attentions.numpy(), cmap='bone')
     fig.colorbar(cax)
 
-    # 设置坐标轴标签
-    ax.set_xticklabels([''] + input_sentence.split(' ') + ['<EOS>'], rotation=90)
-    ax.set_yticklabels([''] + output_words)
+    input_words = input_sentence.split(' ') + ['<EOS>']
 
-    # 显示每个刻度
-    ax.xaxis.set_major_locator(ticker.MultipleLocator(1))
-    ax.yaxis.set_major_locator(ticker.MultipleLocator(1))
-    plt.show()
+    # 设置 x/y 轴的 ticks 和 labels
+    ax.set_xticks(range(len(input_words)))
+    ax.set_yticks(range(len(output_words)))
+
+    ax.set_xticklabels(input_words, rotation=90)
+    ax.set_yticklabels(output_words)
+
+    ax.xaxis.set_major_locator(plt.MultipleLocator(1))
+    ax.yaxis.set_major_locator(plt.MultipleLocator(1))
+
+    plt.savefig("output/attention")
+
 
 
 def evaluate_and_show_attention(input_sentence):
