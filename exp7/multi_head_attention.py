@@ -31,4 +31,3 @@ class MultiHeadSelfAttention(nn.Module):
         out = attn @ V
         out = out.transpose(1, 2).reshape(B, L, D)
         return self.out_proj(out)
-    

@@ -38,3 +38,18 @@ class TransformerClassifier(nn.Module):
         attn_out = self.attention(emb, mask)
         pooled = attn_out.mean(dim=1)
         return self.fc(pooled)
+
+class MHAClassifier(nn.Module):
+    def __init__(self, vocab_size, embed_dim, num_heads, num_classes=4):
+        super().__init__()
+        self.embedding = nn.Embedding(vocab_size, embed_dim)
+        self.attn = nn.MultiheadAttention(embed_dim, num_heads, batch_first=True)
+        self.linear = nn.Linear(embed_dim, num_classes)
+        self.attn_weights = None  # 用于保存注意力权重
+
+    def forward(self, x):
+        x = self.embedding(x)  # [B, T, E]
+        attn_output, attn_weights = self.attn(x, x, x)
+        self.attn_weights = attn_weights  # [B, T, T]
+        pooled = attn_output.mean(dim=1)
+        return self.linear(pooled)
