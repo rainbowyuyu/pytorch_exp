@@ -168,3 +168,8 @@ class AttnDecoderRNN(nn.Module):
     <img src="exp6/output/loss.png" width="45%"/>
     <img src="exp6/output/attention.png" width="45%"/>
 </p>
+
+### [exp7](exp7)
+基于多头注意力机制的文本分类
+
+> 详细信息见文件内的[README.md](exp7/README.md)
