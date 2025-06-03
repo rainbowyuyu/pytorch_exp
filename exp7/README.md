@@ -5,9 +5,9 @@
 
 ---
 
-#### 实验的股票数据:
+#### 实验数据:
 
-![output_plot.png](output/output_plot.png)
+[IMDB](https://huggingface.co/datasets/stanfordnlp/imdb)数据集
 
 ---
 
